@@ -1,42 +1,36 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const WeatherDisplay = () => {
+const WeatherDisplay = ({ city }) => {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchWeather = async () => {
-      const API_KEY = 'c15fd33eb97085d319dbe776669e5922'; // Replace with your actual API key
-      const city = 'New York';
-
+      const API_KEY = 'c15fd33eb97085d319dbe776669e5922';
+      
       try {
+        setLoading(true);
         const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=imperial`);
         setWeatherData(response.data);
-        setLoading(false);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching weather data:', err);
-        setError(`Failed to fetch weather data: ${err.message}`);
+        setError(`Failed to fetch weather data: ${err.response?.data?.message || err.message}`);
+        setWeatherData(null);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchWeather();
-  }, []);
-
-  const retryFetch = () => {
-    setLoading(true);
-    setError(null);
-  };
+    if (city) {
+      fetchWeather();
+    }
+  }, [city]);
 
   if (loading) return <div>Loading weather data...</div>;
-  if (error) return (
-    <div>
-      <p>Error: {error}</p>
-      <button onClick={retryFetch}>Retry</button>
-    </div>
-  );
+  if (error) return <div>Error: {error}</div>;
   if (!weatherData) return null;
 
   return (
